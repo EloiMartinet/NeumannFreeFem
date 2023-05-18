@@ -1,0 +1,30 @@
+/* Calculation of a shape gradient (not a descent direction) for the compliance functional */
+include "./sources/inout.idp"
+include "./sources/macros.idp"
+
+/* Get mesh and sol names */
+string MESH     = getsParam(EXCHFILE,"MeshName");
+string NEWMESH  = getsParam(EXCHFILE,"NewMeshName");
+string RHO      = getsParam(EXCHFILE,"RhoName");
+string NEWSOL   = getsParam(EXCHFILE,"NewRhoName");
+string GRAD     = getsParam(EXCHFILE,"GradName");
+real step       = getrParam(EXCHFILE, "Step");
+
+/* Loading mesh */
+mesh Th = readmesh(MESH);
+
+fespace Vh(Th, P1);
+Vh rho, grad, newRho;
+Vh zero = 0;
+Vh one = 1;
+
+/* Load the density function and the grad */
+loadsol(RHO, rho[]);
+loadsol(GRAD, grad[]);
+
+/* Iterate */
+newRho = max(min(rho+step*grad, one), zero);
+
+/* save solution */
+printsol(NEWSOL,newRho[]);
+savemesh(Th, NEWMESH);

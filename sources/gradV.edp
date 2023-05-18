@@ -1,0 +1,17 @@
+/* Calculation of a shape gradient (not a descent direction) for the volume functional */
+include "./sources/inout.idp"
+include "./sources/macros.idp"
+
+/* Get mesh and sol names */
+string MESH       = getsParam(EXCHFILE,"MeshName");
+string GRADV      = getsParam(EXCHFILE,"GradName");
+
+/* Loading mesh */
+mesh Th = readmesh(MESH);
+
+/* Finite element spaces and functions */
+fespace Vh(Th,P1);
+Vh g = 1;
+
+/* save solution */
+printsol(GRADV,g[]);

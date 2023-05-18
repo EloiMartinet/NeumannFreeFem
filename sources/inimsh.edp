@@ -1,0 +1,22 @@
+/* Creation of the initial mesh: cantilever test case */
+include "./sources/inout.idp"
+include "./sources/macros.idp"
+
+/* Get mesh and sol names */
+string MESH = getsParam(EXCHFILE,"MeshName");
+string RHO =  getsParam(EXCHFILE,"RhoName");
+
+/* Create mesh */
+int n = 30;
+mesh Th = square(n, n);
+
+fespace Vh(Th, P1);
+Vh rho;
+
+rho = pow(abs(sin(2*pi*x)*sin(2*pi*y)),4);
+
+/* Save mesh */
+savemesh(Th,MESH);
+
+/* Save solution (first project it as a P1 function on Th)*/
+printsol(RHO, rho[]);

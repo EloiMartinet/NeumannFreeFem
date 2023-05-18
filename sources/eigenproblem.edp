@@ -1,0 +1,45 @@
+/* Resolution of the linearized elasticity equation on the input shape */
+include "./sources/inout.idp"
+include "./sources/macros.idp"
+load "medit"
+
+/* Get mesh and sol names, and global parameters */
+string MESH       = getsParam(EXCHFILE,"MeshName"); // Mesh name
+string RHO        = getsParam(EXCHFILE,"RhoName");  // Name of the density file
+int k             = getiParam(EXCHFILE, "K");       // The index of the eigenvalue we optimize
+int numEv         = getiParam(EXCHFILE, "NumEv"); // The number of eigenvalues to consider (for multiplicity)
+real eps          = getrParam(EXCHFILE,"Eps");      // The non-degeneracy parameter
+string[int] U(numEv); // Name of the eigenfunction files
+
+for(int i=0; i<numEv; i++){
+  U[i] = getsParam(EXCHFILE, "UName"+ (k+i));
+}
+
+/* Loading mesh */
+mesh Th = readmesh(MESH);
+
+/* Finite element spaces and functions */
+fespace Vh(Th,P1);
+Vh rho, uh, vh;
+loadsol(RHO, rho[]);
+
+/* Set the bilinear forms */
+varf va(uh, vh) = int2d(Th)( (rho+eps)*(dx(uh)*dx(vh) + dy(uh)*dy(vh)) );
+varf vb(uh, vh) = int2d(Th)( (rho+eps*eps)*uh*vh );
+
+matrix A = va(Vh, Vh ,solver = sparsesolver); // Matrix A on left side
+matrix B = vb(Vh, Vh);                        // Matrix B on right side
+
+/* Get first Eigenvalues */
+int eigCount = k+numEv+1;
+real[int] ev(eigCount); // Holds Eigenvalues
+Vh[int] eV(eigCount);   // Holds Eigenfunctions
+
+int numEigs = EigenValue(A,B,sym=true,sigma=0,value=ev,vector=eV);
+
+/* Save the eigenfunctions */
+for(int i=0; i<numEv; i++){
+  /* Save the eigenvfunction and eigenvalue */
+  printsol(U[i],eV[k+i][]);
+  setrParam(EXCHFILE,"Ev"+(k+i),ev[k+i]);
+}

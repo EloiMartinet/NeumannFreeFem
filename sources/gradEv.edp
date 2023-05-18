@@ -1,0 +1,37 @@
+/* Calculation of a shape gradient (not a descent direction) for the compliance functional */
+include "./sources/inout.idp"
+include "./sources/macros.idp"
+
+/* Get mesh and sol names */
+string MESH       = getsParam(EXCHFILE,"MeshName");
+string RHO        = getsParam(EXCHFILE,"RhoName");
+int numEv         = getiParam(EXCHFILE, "NumEv"); // The number of eigenvalues to consider (for multiplicity)
+int k             = getiParam(EXCHFILE, "K"); // The number of eigenvalues to consider (for multiplicity)
+real eps          = getrParam(EXCHFILE,"Eps");      // The non-degeneracy parameter
+string[int] GRADEV(numEv); // Name of the file containing the derivatives of the eigenfunctions
+string[int] U(numEv); // Name of the eigenfunction files
+real[int] ev(numEv);  // The eigenvalues
+
+for(int i=0; i<numEv; i++){
+  U[i] = getsParam(EXCHFILE, "UName"+(i+k));
+  GRADEV[i] = getsParam(EXCHFILE,"GradEvName"+(i+k));
+  ev[i] = getrParam(EXCHFILE,"Ev"+(i+k));
+}
+
+/* Loading mesh */
+mesh Th = readmesh(MESH);
+
+fespace Vh(Th, P1);
+Vh u, rho, g;
+loadsol(RHO, rho[]);
+
+for(int i=0; i<numEv; i++){
+  /* Load the eigen function */
+  loadsol(U[i], u[]);
+
+  /* Compute the gradient */
+  g = dx(u)*dx(u) + dy(u)*dy(u) - ev[i]*u*u;
+
+  /* Save the gradient */
+  printsol(GRADEV[i],g[]);
+}

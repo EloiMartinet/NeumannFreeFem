@@ -1,0 +1,61 @@
+/* Calculation of a descent direction for the compliance minimization problem under volume constraint
+   by means of the null-space constrained optimization algorithm */
+include "./sources/inout.idp"
+include "./sources/macros.idp"
+
+/* Get mesh and sol names, and global parameters */
+string MESH       = getsParam(EXCHFILE,"MeshName");
+string GRAD       = getsParam(EXCHFILE,"GradName");
+string GRADV      = getsParam(EXCHFILE,"GradVolName");
+real lambda       = getrParam(EXCHFILE,"Lambda"); // Lagrange multiplier
+real p            = getrParam(EXCHFILE,"P"); // The exponent in the regularization of the minimum
+real k            = getrParam(EXCHFILE,"K"); // Index of the eigenvalue
+real numEv        = getrParam(EXCHFILE,"K"); // Number of eigenvalues
+real alpha        = getrParam(EXCHFILE,"Regularization");
+real vol          = getrParam(EXCHFILE,"Volume");
+real vtarg        = getrParam(EXCHFILE,"VTarg");
+string[int] GRADEV(numEv); // Name of the file conaining the derivatives of the eigenfunctions
+real[int] ev(numEv); // The eigenvalues we consider
+
+for(int i=0; i<numEv; i++){
+  ev[i] = getrParam(EXCHFILE, "Ev"+(k+i));
+  GRADEV[i] = getsParam(EXCHFILE,"GradEvName"+(k+i));
+}
+
+/* Load mesh */
+mesh Th = readmesh(MESH);
+
+/* Finite element spaces and functions */
+fespace Vh(Th,P1);
+Vh gradV, grad, g, v;
+Vh[int] gradEv(numEv);
+
+/* Load the grads */
+loadsol(GRADV, gradV[]);
+
+for(int i=0; i<numEv; i++){
+  loadsol(GRADEV[i], gradEv[i][]);
+}
+
+/* Compute the descent direction */
+/* This is the derivative for the function (\int \rho)*(\sum_{i=0}^{numEv-1} \mu_{k+i}^{-p}(\rho) )^{-1/p} + the lagrange multiplier */
+/* The first part is a regularization of the min function */
+Vh gradRegMin = 0;
+real factor, regMin = 0;
+
+for(int i=0; i<numEv; i++){
+  gradRegMin = gradRegMin + pow(ev[i], -(p+1))*gradEv[i];
+  regMin += pow(ev[i], -p);
+}
+factor = pow(regMin, -1./p-1);
+regMin = pow(regMin, -1./p);
+gradRegMin = factor*gradRegMin;
+
+grad = regMin*gradV + vol*gradRegMin + 2*lambda*(vol-vtarg)*gradV;
+
+/* regularize it */
+solve reg(g,v) = int2d(Th)(alpha^2*(dx(g)*dx(v)+dy(g)*dy(v)) + g*v) - int2d(Th)(grad*v);
+//g = grad;
+
+/* Save solution */
+printsol(GRAD,g[]);

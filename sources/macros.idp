@@ -1,0 +1,3 @@
+/* General macros ansd global parameters for shape and topology optimization */
+/* File for communication of data with python */
+string EXCHFILE   = "./res/exch.data";

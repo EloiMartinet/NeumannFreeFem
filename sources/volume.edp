@@ -1,0 +1,20 @@
+/* Calculation of the compliance of the input structure */
+include "./sources/inout.idp"
+include "./sources/macros.idp"
+
+/* Get mesh and sol names, and global parameters */
+string MESH       = getsParam(EXCHFILE,"MeshName");
+string SOL        = getsParam(EXCHFILE,"RhoName");
+
+/* Loading mesh */
+mesh Th = readmesh(MESH);
+
+fespace Vh(Th, P1);
+Vh rho;
+loadsol(SOL, rho[]);
+
+/* Calculate volume */
+real vol = int2d(Th)(rho);
+
+/* Save result */
+setrParam(EXCHFILE,"Volume",vol);
