@@ -6,8 +6,6 @@ import subprocess
 import os
 import inout
 import sys
-import mshtools
-import lstools
 
 ###########################################################################
 #######           Create initial mesh and density                   #######

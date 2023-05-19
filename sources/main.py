@@ -7,14 +7,9 @@ import numpy as np
 import subprocess
 import path
 import inout
-import mshtools
-import lstools
 import inigeom
 import mechtools
 
-###############################################################
-##################      START PROGRAM    ######################
-###############################################################
 
 print("*************************************************")
 print("****** Neumann eigenvalue optimization **********")
@@ -40,15 +35,10 @@ newObj = mechtools.objective(newEv, newvol)
 
 print(f"*** Initialization: Eigenvalue {newEv} ; volume {newvol}")
 
-# Coefficient for time step ( descent direction is scaled with respect to mesh size)
+# Coefficient for time step
 coef = 1.0
 
 # Main loop
-# At the beginning of each iteration, are available:
-#    - the mesh $\¢alT^n$ of $D$ associated to the current shape $\Omega^n$;
-#    - the solution to the linear elasticity equation on $\Omega^n$ (at the nodes of $D$).
-#    - The compliance and volume of the shape
-
 for n in range(0,path.MAXIT) :
     # The names of the files containing...
     curmesh     = path.step(n,"mesh")            # The mesh
@@ -87,13 +77,6 @@ for n in range(0,path.MAXIT) :
         # Perfoms an iteration
         mechtools.iterate(curmesh, curRho, curgrad, newmesh, newRho, coef*path.INISTEP)
 
-        # Adapt mesh after enough iterations
-        if (n+1)%path.ITREMESH == 0:
-            mshtools.adapt(newmesh, newRho, newmesh, newRho)
-
-            
-
-
         # Solves the eigen problem and compute the new eigenvalues and volume
         mechtools.eigenproblem(newmesh, newRho, newu)
         newEv  = mechtools.eigenvalues()
@@ -113,10 +96,6 @@ for n in range(0,path.MAXIT) :
             proc.wait()
             coef = max(path.MINCOEF, 0.6*coef)
 
-
-###############################################################
-####################       END PROGRAM      ###################
-###############################################################
 print("*************************************************")
 print("****************** End **************************")
 print("*************************************************")

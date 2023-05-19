@@ -5,9 +5,10 @@ include "./sources/macros.idp"
 /* Get mesh and sol names */
 string MESH = getsParam(EXCHFILE,"MeshName");
 string RHO =  getsParam(EXCHFILE,"RhoName");
+real HMESH = getrParam(EXCHFILE,"HMesh");
 
 /* Create mesh */
-int n = 30;
+int n = 1/HMESH;
 mesh Th = square(n, n);
 
 fespace Vh(Th, P1);

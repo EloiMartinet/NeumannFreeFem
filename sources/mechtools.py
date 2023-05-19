@@ -205,27 +205,3 @@ def iterate(mesh,rho,grad,newmesh, newRho, step) :
 
 #######################################################################################
 #######################################################################################
-
-#######################################################################################
-#####                         Evaluation of the merit function                    #####
-#####                     in the Null Space optimization algorithm                #####
-#####      inputs : Cp: (real) value of compliance                                #####
-#####               vol: (real) value of the volume                               #####
-#####      output : merit: (real) value of the merit of shape                    #####
-#######################################################################################
-
-def merit(Cp,vol) :
-
-  # Read parameters in the exchange file
-  [alphaJ] = inout.getrAtt(file=path.EXCHFILE,attname="alphaJ")
-  [alphaG] = inout.getrAtt(file=path.EXCHFILE,attname="alphaG")
-  [ell] = inout.getrAtt(file=path.EXCHFILE,attname="Lagrange")
-  [m] = inout.getrAtt(file=path.EXCHFILE,attname="Penalty")
-  [vtarg] = inout.getrAtt(file=path.EXCHFILE,attname="VolumeTarget")
-
-  merit = alphaJ*(Cp - ell*(vol-vtarg)) + 0.5*alphaG/m*(vol-vtarg)**2
-
-  return merit
-
-#######################################################################################
-#######################################################################################

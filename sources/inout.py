@@ -105,8 +105,7 @@ def iniWF():
   ff.close()
 
   # Add global information (e.g. about Dirichlet and Neumann boundaries)
-  setAtt(file=path.EXCHFILE,attname="HMin",attval=path.HMIN)
-  setAtt(file=path.EXCHFILE,attname="HMax",attval=path.HMAX)
+  setAtt(file=path.EXCHFILE,attname="HMesh",attval=path.HMESH)
   setAtt(file=path.EXCHFILE,attname="Regularization",attval=path.ALPHA)
   setAtt(file=path.EXCHFILE,attname="Eps",attval=path.EPS)
   setAtt(file=path.EXCHFILE,attname="P",attval=path.P)
@@ -140,43 +139,6 @@ def testLib():
     print("Problem with FreeFem installation.")
     exit()
 
-  # Test call to mshdist
-  oldsol = path.TESTMESH.replace('.mesh','') + ".sol"
-  proc = subprocess.Popen(["mv {old} {new}".format(old=path.TESTPHI,new=oldsol)],shell=True,stdout=log)
-  proc = subprocess.Popen(["{mshdist} {mesh} -fmm".format(mshdist=path.MSHDIST,mesh=path.TESTMESH)],shell=True,stdout=log)
-  proc.wait()
-
-  if ( proc.returncode == 0 ) :
-    print("Mshdist installation working.")
-  else :
-    print("Problem with Mshdist installation.")
-    exit()
-
-  proc = subprocess.Popen(["mv {old} {new}".format(old=oldsol,new=path.TESTPHI)],shell=True,stdout=log)
-  proc.wait()
-
-  # Test call to advect
-  proc = subprocess.Popen(["{adv} {msh} -s {vit} -c {chi} -dt {dt} -o {out} -nocfl".format(adv=path.ADVECT,msh=path.TESTMESH,vit=path.TESTSOL,chi=path.TESTPHI,dt=0.1,out=path.TESTPHI)],shell=True,stdout=log)
-  proc.wait()
-
-  if ( proc.returncode == 0 ) :
-    print("Advect installation working.")
-  else :
-    print("Problem with Advect installation.")
-    exit()
-
-  # Test call to mmg
-  proc = subprocess.Popen(["{mmg} {msh} -ls -sol {phi} -hmin 0.005 -hmax 0.01 -hausd 0.005 -hgrad 1.3".format(mmg=path.MMG2D,msh=path.TESTMESH,phi=path.TESTPHI)],shell=True,stdout=log)
-  proc.wait()
-
-  if ( proc.returncode == 0 ) :
-    print("Mmg installation working.")
-  else :
-    print("Problem with Mmg installation.")
-    exit()
-
-  print("All external libraries working.")
-  log.close()
 
 ##############################################################################
 ##############################################################################
